@@ -10,9 +10,25 @@ Shared error / status-code / global-exception-handler library.
   error-returning handler into a normal `http.HandlerFunc`).
 - `example_test.go` — runnable example of the whole flow.
 
-## Usage in a product
+## Use from another Go service
+
+From the consuming service, add the library as a dependency:
+
+```bash
+go get github.com/vikashpal28/velocitai_error_library@v1.1.3
+```
+
+Then import it using the package name `myerrors`:
 
 ```go
+import (
+   "encoding/json"
+   "log/slog"
+   "net/http"
+
+   myerrors "github.com/vikashpal28/velocitai_error_library"
+)
+
 mux := http.NewServeMux()
 cfg := myerrors.HandlerConfig{Logger: slog.Default()}
 
@@ -27,7 +43,7 @@ http.ListenAndServe(":8080", handler)
 ```go
 func getUser(w http.ResponseWriter, r *http.Request) error {
     if !valid(r) {
-        return myerrors.Validation("id is required")
+      return myerrors.ValidationFailed("id is required")
     }
     user, err := repo.Get(id)
     if err != nil {
@@ -36,6 +52,12 @@ func getUser(w http.ResponseWriter, r *http.Request) error {
     }
     return json.NewEncoder(w).Encode(user)
 }
+```
+
+`myerrors.WriteError` converts an error code to its HTTP status and returns JSON in this shape:
+
+```json
+{"code":"NOT_FOUND","message":"user not found"}
 ```
 
 Branch on failures with `myerrors.CodeOf(err)` or `errors.Is(err, myerrors.NotFound(""))` —
