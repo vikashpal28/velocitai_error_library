@@ -6,7 +6,7 @@ import "errors"
 type ApiError struct{
 	Code Code
 	Message string
-	Op string
+	Op string //operation name, optional
 	Err error
 }
 
